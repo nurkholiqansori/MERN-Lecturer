@@ -2,6 +2,8 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const { MongoClient } = require('mongodb')
 const cors = require('cors')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
 const app = express()
 const port = 8000
@@ -38,11 +40,70 @@ app.post('/api/articles', async (req, res) => {
   }
   await mongodbConfig(async (db) => {
     const collection = db.collection('articles')
-    await collection.insertOne(article).then((result) => {
-      res.status(201).json({ message: 'Article created', result: result })
-    }).catch((err) => {
-      res.status(500).json({ message: 'Have some probrlem : ' + err })
-    })
+    await collection
+      .insertOne(article)
+      .then((result) => {
+        res.status(201).json({ message: 'Article created', result: result })
+      })
+      .catch((err) => {
+        res.status(500).json({ message: 'Have some probrlem : ' + err })
+      })
+  }, res)
+})
+app.post('/api/signup', async (req, res) => {
+  const { name, email } = req.body
+  const password = bcrypt.hashSync(req.body.password, 10)
+  const user = {
+    name,
+    email,
+    password,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+  await mongodbConfig(async (db) => {
+    const collection = db.collection('accounts')
+    await collection
+      .insertOne(user)
+      .then((result) => {
+        res.status(201).json({ message: 'User created', result: result })
+      })
+      .catch((err) => {
+        res.status(500).json({ message: 'Have some probrlem : ' + err })
+      })
+  }, res)
+})
+app.post('/api/signin', async (req, res) => {
+  const { email, password } = req.body
+  await mongodbConfig(async (db) => {
+    const collection = db.collection('accounts')
+    await collection
+      .findOne({ email })
+      .then((result) => {
+        if (result) {
+          const passwordIsValid = bcrypt.compareSync(password, result.password)
+          if (passwordIsValid) {
+            const token = jwt.sign({ id: result._id }, 'secret', {
+              expiresIn: '1h',
+            })
+            res.status(200).json({
+              message: 'Login Success',
+              result: {
+                email: result.email,
+                name: result.name,
+                createdAt: result.createdAt,
+              },
+              token: token,
+            })
+          } else {
+            res.status(401).json({ message: 'Invalid password' })
+          }
+        } else {
+          res.status(401).json({ message: 'Login failed' })
+        }
+      })
+      .catch((err) => {
+        res.status(500).json({ message: 'Have some probrlem : ' + err })
+      })
   }, res)
 })
 app.post('/api/article/:name/add-comment', async (req, res) => {

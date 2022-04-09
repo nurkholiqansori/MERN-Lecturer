@@ -1,7 +1,6 @@
 import axios from 'axios'
 import React from 'react'
 import { Link, useParams } from 'react-router-dom'
-import articleData from '../api/articleData'
 import Body from '../components/Body'
 import Title from '../components/Title'
 import NotFound from './NotFound'
@@ -11,15 +10,12 @@ const Article = () => {
   // const article = articleData.find((article) => article.name === params.name)
   const title = params.title
   const [articleDb, setArticleDb] = React.useState({})
-  const [email, setEmail] = React.useState('')
-  const [comment, setComment] = React.useState('')
 
   React.useEffect(() => {
     axios.get(`http://localhost:8000/api/article/${title}`).then((res) => {
       setArticleDb(res.data)
     })
-  }, [])
-  console.log(articleDb)
+  }, [title])
 
   // const inputComment = async (e) => {
   //   e.preventDefault()
