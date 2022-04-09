@@ -1,3 +1,4 @@
+import axios from 'axios'
 import React from 'react'
 import { Link, useParams } from 'react-router-dom'
 import articleData from '../api/articleData'
@@ -7,10 +8,46 @@ import NotFound from './NotFound'
 
 const Article = () => {
   const params = useParams()
+  // const article = articleData.find((article) => article.name === params.name)
+  const title = params.title
+  const [articleDb, setArticleDb] = React.useState({})
+  const [email, setEmail] = React.useState('')
+  const [comment, setComment] = React.useState('')
 
-  const article = articleData.find((article) => article.name === params.name)
+  React.useEffect(() => {
+    axios.get(`http://localhost:8000/api/article/${title}`).then((res) => {
+      setArticleDb(res.data)
+    })
+  }, [])
+  console.log(articleDb)
 
-  if (!article) return <NotFound />
+  // const inputComment = async (e) => {
+  //   e.preventDefault()
+  //   const myHeaders = new Headers()
+  //   myHeaders.append('Content-Type', 'application/json')
+
+  //   const raw = JSON.stringify({
+  //     email: email,
+  //     text: comment,
+  //   })
+
+  //   const requestOptions = {
+  //     method: 'POST',
+  //     headers: myHeaders,
+  //     body: raw,
+  //   }
+
+  //   const result = await fetch(
+  //     `/article/${name}/api/add-comment`,
+  //     requestOptions,
+  //   )
+  //   const body = await result.json()
+  //   setArticleDb(body)
+  //   setEmail('')
+  //   setComment('')
+  // }
+
+  if (!articleDb) return <NotFound />
 
   return (
     <Body>
@@ -33,68 +70,88 @@ const Article = () => {
             </svg>
           </div>
         </Link>
-        <Title>{article.title}</Title>
+        <Title>{articleDb.title}</Title>
         <div></div>
       </div>
       <div className='w-1/2 mx-auto rounded-lg overflow-hidden my-5'>
-        <img className='w-full h-full' src={article.img} alt={article.title} />
+        <img
+          className='w-full h-full'
+          src={articleDb.thumbnail}
+          alt={articleDb.title}
+        />
       </div>
-      <p className='text-justify'>{article.content}</p>
+      <p className='text-justify'>{articleDb.content}</p>
       <div className='my-5'>
         <div className='text-xl text-center pb-5 text-semibold'>Comments</div>
-        <div class='bg-white w-full rounded-lg px-10 py-4 shadow-lg hover:shadow-2xl transition duration-500 border flex'>
-          <div class='mt-4'>
-            <p class='text-md text-gray-600'>
-              But I must explain to you how all this mistaken idea of denouncing
-              pleasure and praising pain was born and I will give you a complete
-              account of the system, and expound the actual teachings of the
-              great explorer of the truth, the master-builder of human happines.
-            </p>
-            <div class='flex justify-between items-center'>
-              <div class='mt-4 flex items-center space-x-4 py-4'>
-                <div class=''>
-                  <img
-                    class='w-12 h-12 rounded-full'
-                    src='https://images.unsplash.com/photo-1593104547489-5cfb3839a3b5?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1036&q=80'
-                    alt=''
-                  />
+        <div className='flex flex-col gap-5'>
+          {articleDb.comments ? (
+            articleDb.comments.length > 0 ? (
+              articleDb.comments.map((comment) => (
+                <div
+                  key={comment.email}
+                  className='bg-white w-full rounded-lg px-10 py-4 shadow-lg hover:shadow-2xl transition duration-500 border flex'
+                >
+                  <div className='mt-4'>
+                    <p className='text-md text-gray-600'>{comment.text}</p>
+                    <div className='flex justify-between items-center'>
+                      <div className='mt-4 flex items-center space-x-4 py-4'>
+                        <div className='text-sm font-semibold'>
+                          {comment.email} •{' '}
+                          <span className='font-normal'> 5 minutes ago</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class='text-sm font-semibold'>
-                  John Lucas • <span class='font-normal'> 5 minutes ago</span>
-                </div>
+              ))
+            ) : (
+              <div className='text-center text-gray-600'>
+                No comments yet. Be the first to comment!
               </div>
-            </div>
-          </div>
+            )
+          ) : (
+            'Loading...'
+          )}
         </div>
         <div className=''>
           <div className='text-xl text-center py-5 text-semibold'>
             Submit Comment
           </div>
-          <input
-            type='email'
-            class='bg-gray-100 rounded-lg border border-sky-500 leading-normal resize-none w-full py-2 px-3 font-medium placeholder-gray-700 focus:outline-none focus:bg-white mb-4 transition-all duration-300'
-            name='email'
-            placeholder='Your Gravatar Email'
-            required
-          />
-          <textarea
-            class='bg-gray-100 rounded-lg border border-sky-500 leading-normal resize-none w-full h-20 py-2 px-3 font-medium placeholder-gray-700 focus:outline-none focus:bg-white transition-all duration-300'
-            name='body'
-            placeholder='Type Your Comment'
-            required
-          ></textarea>
-          <a
-            href='https://gravatar.com'
-            target='_blank'
-            rel='noopener noreferrer'
-            title='Gravatar Website'
-            className='block text-gray-400'
+
+          <form 
+          // onSubmit={(e) => inputComment(e)}
           >
-            <small>Not have Gravatar Account?</small>
-          </a>
-          <button className='p-2 border-[1px] rounded-lg mt-5 w-1/3 border-sky-500 hover:bg-sky-500 hover:text-white transition-all duration-300'>
-            Submit
-          </button>
+            <input
+              type='email'
+              className='bg-gray-100 rounded-lg border border-sky-500 leading-normal resize-none w-full py-2 px-3 font-medium placeholder-gray-700 focus:outline-none focus:bg-white mb-4 transition-all duration-300'
+              name='email'
+              placeholder='Your Name'
+              required
+            />
+            {/* <textarea
+              className='bg-gray-100 rounded-lg border border-sky-500 leading-normal resize-none w-full h-20 py-2 px-3 font-medium placeholder-gray-700 focus:outline-none focus:bg-white transition-all duration-300'
+              name='body'
+              placeholder='Type Your Comment'
+              required
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            ></textarea> */}
+            <a
+              href='https://gravatar.com'
+              target='_blank'
+              rel='noopener noreferrer'
+              title='Gravatar Website'
+              className='text-gray-400 mx-auto'
+            >
+              <small>Not have Gravatar Account?</small>
+            </a>
+            <input
+              type='button'
+              className='p-2 block border-[1px] rounded-lg mt-5 w-1/3 border-sky-500 hover:bg-sky-500 hover:text-white transition-all duration-300'
+              value='Submit'
+              // onClick={(e) => inputComment(e)}
+            />
+          </form>
         </div>
       </div>
     </Body>
