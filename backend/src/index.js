@@ -4,6 +4,48 @@ const { MongoClient } = require('mongodb')
 const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const multer = require('multer')
+
+const date = new Date()
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads')
+  },
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      date.getMilliseconds().toString() +
+        '_' +
+        date.getHours().toString() +
+        date.getMinutes().toString() +
+        '-' +
+        date.getDate().toString() +
+        date.getDay().toString() +
+        date.getFullYear().toString() +
+        '-' +
+        file.originalname.toLowerCase().replace(/\s/g, '-'),
+    )
+  },
+})
+const upload = multer({
+  storage: storage,
+  fileFiter: (req, file, db) => {
+    if (
+      file.mimetype == 'image/png' ||
+      file.mimetype == 'image/jpg' ||
+      file.mimetype == 'image/jpeg'
+    ) {
+      cb(null, true)
+    } else {
+      cb(null, false)
+      return cb(new Error('Only .png, .jpg and .jpeg format allowed!'))
+    }
+  },
+  limits: {
+    fileSize: 5000000,
+  },
+})
 
 const app = express()
 const port = 8000
@@ -19,20 +61,22 @@ const mongodbConfig = async (operation, res) => {
     await operation(db)
     client.close()
   } catch (err) {
-    res.status(500).json({ message: 'Have some probrlem : ' + err })
+    return res.status(500).json({ message: 'Have some probrlem : ' + err })
   }
 }
 
 app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cors(origin))
+app.use('/uploads', express.static('uploads'))
 
 // CREATE
-app.post('/api/articles', async (req, res) => {
-  const { title, url, thumbnail, content } = req.body
+app.post('/api/articles', upload.single('thumbnail'), async (req, res) => {
+  const { title, url, content } = req.body
   const article = {
     title,
-    url, // name
-    thumbnail, // img
+    url,
+    thumbnail: '/uploads/' + req.file.filename,
     content,
     comments: [],
     createdAt: new Date(),
@@ -43,13 +87,14 @@ app.post('/api/articles', async (req, res) => {
     await collection
       .insertOne(article)
       .then((result) => {
-        res.status(201).json({ message: 'Article created', result: result })
+        return res.status(201).json({ message: 'Article created', result: result })
       })
       .catch((err) => {
-        res.status(500).json({ message: 'Have some probrlem : ' + err })
+        return res.status(500).json({ message: 'Have some probrlem : ' + err })
       })
   }, res)
 })
+
 app.post('/api/signup', async (req, res) => {
   const { name, email } = req.body
   const password = bcrypt.hashSync(req.body.password, 10)
@@ -128,6 +173,7 @@ app.post('/api/article/:name/add-comment', async (req, res) => {
     res.status(200).json(updatedArticleDb)
   }, res)
 })
+
 
 // READ
 app.get('/api/articles', async (req, res) => {
