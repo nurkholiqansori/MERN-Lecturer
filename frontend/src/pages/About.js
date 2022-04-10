@@ -19,7 +19,7 @@ const About = () => {
     })
     Axios.get(
       'https://api.github.com/repos/nurkholiqansori/MERN-Lecturer').then((res) => {
-        setLastUpdated(res.data.pushed_at)
+        setLastUpdated(res.data.updated_at)
       }
     )
   }, [])
