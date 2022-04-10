@@ -195,7 +195,6 @@ const Dashboard = () => {
               id='content-article transition-all duration-150'
               type='text'
               name='content'
-              multiline
               placeholder='Content'
               required
             />

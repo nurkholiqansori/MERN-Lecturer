@@ -10,7 +10,6 @@ import remarkHtml from 'remark-html'
 const About = () => {
   const [readme, setReadme] = React.useState('')
   const [lastUpdated, setLastUpdated] = React.useState('')
-  console.log(lastUpdated)
 
   React.useEffect(() => {
     Axios.get(
@@ -20,7 +19,7 @@ const About = () => {
     })
     Axios.get(
       'https://api.github.com/repos/nurkholiqansori/MERN-Lecturer').then((res) => {
-        setLastUpdated(res.data.updated_at)
+        setLastUpdated(res.data.pushed_at)
       }
     )
   }, [])
@@ -35,9 +34,7 @@ const About = () => {
     second: 'numeric',
     hour24: true,
   }
-  const formattedDate = date.toLocaleDateString('en-US', options)
-  
-  console.log(formattedDate)
+  const formattedDate = date.toLocaleDateString('id-ID', options)
 
   const rawMarkup = Buffer.from(readme, 'base64').toString('ascii')
 
@@ -85,11 +82,12 @@ const About = () => {
             pre: Pre,
             ul: UnorderedList,
             li: Li,
-            blockquote: Blockquote
+            blockquote: Blockquote,
           }}
         >
           {rawMarkup}
         </ReactMarkdown>
+        <p className='text-xs italic text-right mb-10'>Last updated at {formattedDate}</p>
       </div>
     </Body>
   )

@@ -59,3 +59,11 @@
     ```
 
 Enjoy!
+
+
+## TO DO
+
+- [x] Add a 404 page
+- [x] Add a Signup page
+- [x] Clean up UI
+- [x] Add a Comment Section
