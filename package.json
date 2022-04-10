@@ -2,7 +2,10 @@
   "scripts": {
     "start:backend": "cd backend && npm run start",
     "start:frontend": "cd frontend && npm run start",
-    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && npm install",
+    "install": "concurrently \"npm run install:backend\" \"npm run install:frontend\""
   },
   "dependencies": {
     "concurrently": "^7.1.0"
